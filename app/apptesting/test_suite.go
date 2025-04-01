@@ -57,7 +57,7 @@ type KeeperTestHelper struct {
 	// this is not always enabled, because some tests may take a painful performance hit due to CacheKv.
 	withCaching bool
 
-	App         *app.OmniFlixApp
+	App         *app.PartyNiteApp
 	Ctx         sdk.Context
 	QueryHelper *baseapp.QueryServiceTestHelper
 	TestAccs    []sdk.AccAddress
@@ -65,7 +65,7 @@ type KeeperTestHelper struct {
 
 // Setup sets up basic environment for suite (App, Ctx, and test accounts)
 func (s *KeeperTestHelper) Setup() {
-	dir, err := os.MkdirTemp("", "omniflixhub-test-home")
+	dir, err := os.MkdirTemp("", "partynite-test-home")
 	if err != nil {
 		panic(fmt.Sprintf("failed creating temporary directory: %v", err))
 	}
@@ -96,7 +96,7 @@ func (s *KeeperTestHelper) Setup() {
 }
 
 func (s *KeeperTestHelper) SetupWithCustomChainId(chainId string) {
-	dir, err := os.MkdirTemp("", "omniflixhub-test-home")
+	dir, err := os.MkdirTemp("", "partynite-test-home")
 	if err != nil {
 		panic(fmt.Sprintf("failed creating temporary directory: %v", err))
 	}
@@ -143,7 +143,7 @@ func (s *KeeperTestHelper) SetupWithLevelDb() func() {
 }
 
 func (s *KeeperTestHelper) setupGeneral() {
-	s.setupGeneralCustomChainId("omniflixhub-1")
+	s.setupGeneralCustomChainId("partynite-1")
 }
 
 func (s *KeeperTestHelper) setupGeneralCustomChainId(chainId string) {

@@ -1,13 +1,13 @@
 syntax = "proto3";
-package OmniFlix.onft.v1beta1;
+package PartyNite.onft.v1beta1;
 
 import "cosmos/msg/v1/msg.proto";
 import "amino/amino.proto";
 import "cosmos_proto/cosmos.proto";
-import "OmniFlix/onft/v1beta1/params.proto";
+import "PartyNite/onft/v1beta1/params.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "gogoproto/gogo.proto";
-import "OmniFlix/onft/v1beta1/onft.proto";
+import "PartyNite/onft/v1beta1/onft.proto";
 
 option go_package = "github.com/OmniFlix/omniflixhub/v5/x/onft/types";
 option (gogoproto.goproto_getters_all) = false;
@@ -38,7 +38,7 @@ service Msg {
 
 message MsgCreateDenom {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "OmniFlix/onft/MsgCreateDenom";
+  option (amino.name)           = "PartyNite/onft/MsgCreateDenom";
   option (gogoproto.equal)      = false;
 
   string id = 1;
@@ -68,7 +68,7 @@ message MsgCreateDenomResponse {}
 
 message MsgUpdateDenom {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "OmniFlix/onft/MsgUpdateDenom";
+  option (amino.name)           = "PartyNite/onft/MsgUpdateDenom";
   option (gogoproto.equal)      = false;
 
   string id = 1;
@@ -88,7 +88,7 @@ message MsgUpdateDenomResponse {}
 
 message MsgPurgeDenom {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "OmniFlix/onft/MsgPurgeDenom";
+  option (amino.name)           = "PartyNite/onft/MsgPurgeDenom";
   option (gogoproto.equal)      = false;
 
   string id = 1;
@@ -99,7 +99,7 @@ message MsgPurgeDenomResponse {}
 
 message MsgTransferDenom {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "OmniFlix/onft/MsgTransferDenom";
+  option (amino.name)           = "PartyNite/onft/MsgTransferDenom";
   option (gogoproto.equal)      = false;
 
   string id = 1;
@@ -111,7 +111,7 @@ message MsgTransferDenomResponse {}
 
 message MsgMintONFT {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "OmniFlix/onft/MsgMintONFT";
+  option (amino.name)           = "PartyNite/onft/MsgMintONFT";
   option (gogoproto.equal)      = false;
 
   string   id = 1;
@@ -134,7 +134,7 @@ message MsgMintONFTResponse {}
 
 message MsgTransferONFT {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "OmniFlix/onft/MsgTransferONFT";
+  option (amino.name)           = "PartyNite/onft/MsgTransferONFT";
   option (gogoproto.equal)      = false;
 
   string id = 1;
@@ -147,7 +147,7 @@ message MsgTransferONFTResponse {}
 
 message MsgBurnONFT {
   option (cosmos.msg.v1.signer) = "sender";
-  option (amino.name)           = "OmniFlix/onft/MsgBurnONFT";
+  option (amino.name)           = "PartyNite/onft/MsgBurnONFT";
   option (gogoproto.equal)      = false;
 
   string id = 1;

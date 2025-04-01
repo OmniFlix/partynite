@@ -1,5 +1,5 @@
 syntax = "proto3";
-package OmniFlix.marketplace.v1beta1;
+package PartyNite.marketplace.v1beta1;
 
 option go_package = "github.com/OmniFlix/omniflixhub/v5/x/marketplace/types";
 

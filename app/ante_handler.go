@@ -15,7 +15,6 @@ import (
 )
 
 // Lower back to 1 mil after https://github.com/cosmos/relayer/issues/1255
-const maxBypassMinFeeMsgGasUsage = 2_000_000
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
 // channel keeper.

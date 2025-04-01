@@ -12,7 +12,7 @@ import (
 
 // ExportAppStateAndValidators exports the state of the application for a genesis
 // file.
-func (app *OmniFlixApp) ExportAppStateAndValidators(
+func (app *PartyNiteApp) ExportAppStateAndValidators(
 	forZeroHeight bool, jailAllowedAddrs []string, modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
 	// as if they could withdraw from the start of the next block
@@ -46,7 +46,7 @@ func (app *OmniFlixApp) ExportAppStateAndValidators(
 	}, nil
 }
 
-func (app *OmniFlixApp) ExportState(ctx sdk.Context) map[string]json.RawMessage {
+func (app *PartyNiteApp) ExportState(ctx sdk.Context) map[string]json.RawMessage {
 	export, err := app.mm.ExportGenesis(ctx, app.AppCodec())
 	if err != nil {
 		panic(err)

@@ -1,11 +1,11 @@
 syntax = "proto3";
-package OmniFlix.marketplace.v1beta1;
+package PartyNite.marketplace.v1beta1;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "google/api/annotations.proto";
-import "OmniFlix/marketplace/v1beta1/listing.proto";
-import "OmniFlix/marketplace/v1beta1/params.proto";
-import "OmniFlix/marketplace/v1beta1/auction.proto";
+import "PartyNite/marketplace/v1beta1/listing.proto";
+import "PartyNite/marketplace/v1beta1/params.proto";
+import "PartyNite/marketplace/v1beta1/auction.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/OmniFlix/omniflixhub/v5/x/marketplace/types";
@@ -13,56 +13,56 @@ option go_package = "github.com/OmniFlix/omniflixhub/v5/x/marketplace/types";
 service Query {
   // Params queries params of the marketplace module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/params";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/params";
   }
 
   rpc Listings(QueryListingsRequest) returns (QueryListingsResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/listings";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/listings";
   }
 
   rpc Listing(QueryListingRequest) returns (QueryListingResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/listings/{id}";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/listings/{id}";
   }
 
   rpc ListingsByOwner(QueryListingsByOwnerRequest) returns (QueryListingsByOwnerResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/listings-by-owner/{owner}";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/listings-by-owner/{owner}";
   }
 
   rpc ListingsByPriceDenom(QueryListingsByPriceDenomRequest) returns (QueryListingsByPriceDenomResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/listings-by-price-denom/{price_denom}";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/listings-by-price-denom/{price_denom}";
   }
 
   rpc ListingByNftId(QueryListingByNFTIDRequest) returns (QueryListingResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/listing-by-nft/{nft_id}";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/listing-by-nft/{nft_id}";
   }
 
   // auction queries
   rpc Auctions(QueryAuctionsRequest) returns (QueryAuctionsResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/auctions";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/auctions";
   }
 
   rpc Auction(QueryAuctionRequest) returns (QueryAuctionResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/auctions/{id}";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/auctions/{id}";
   }
 
   rpc AuctionsByOwner(QueryAuctionsByOwnerRequest) returns (QueryAuctionsResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/auctions-by-owner/{owner}";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/auctions-by-owner/{owner}";
   }
 
   rpc AuctionsByPriceDenom(QueryAuctionsByPriceDenomRequest) returns (QueryAuctionsResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/auctions-by-price-denom/{price_denom}";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/auctions-by-price-denom/{price_denom}";
   }
 
   rpc AuctionByNftId(QueryAuctionByNFTIDRequest) returns (QueryAuctionResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/auction-by-nft/{nft_id}";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/auction-by-nft/{nft_id}";
   }
 
   rpc Bids(QueryBidsRequest) returns (QueryBidsResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/bids";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/bids";
   }
 
   rpc Bid(QueryBidRequest) returns (QueryBidResponse) {
-    option (google.api.http).get = "/omniflix/marketplace/v1beta1/bids/{id}";
+    option (google.api.http).get = "/partynite/marketplace/v1beta1/bids/{id}";
   }
 }
 

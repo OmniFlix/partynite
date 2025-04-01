@@ -1,5 +1,5 @@
 syntax = "proto3";
-package OmniFlix.onft.v1beta1;
+package PartyNite.onft.v1beta1;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";

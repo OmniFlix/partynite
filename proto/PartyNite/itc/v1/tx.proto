@@ -1,5 +1,5 @@
 syntax = "proto3";
-package OmniFlix.itc.v1;
+package PartyNite.itc.v1;
 
 import "cosmos/msg/v1/msg.proto";
 import "amino/amino.proto";
@@ -8,8 +8,8 @@ import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
-import "OmniFlix/itc/v1/itc.proto";
-import "OmniFlix/itc/v1/params.proto";
+import "PartyNite/itc/v1/itc.proto";
+import "PartyNite/itc/v1/params.proto";
 
 option go_package = "github.com/OmniFlix/omniflixhub/v5/x/itc/types";
 option (gogoproto.goproto_getters_all) = false;
@@ -34,7 +34,7 @@ service Msg {
 
 message MsgCreateCampaign {
   option (cosmos.msg.v1.signer) = "creator";
-  option (amino.name)           = "OmniFlix/itc/MsgCreateCampaign";
+  option (amino.name)           = "PartyNite/itc/MsgCreateCampaign";
   option (gogoproto.equal)      = false;
 
   string                      name = 1;
@@ -77,7 +77,7 @@ message MsgCreateCampaignResponse {}
 
 message MsgCancelCampaign {
   option (cosmos.msg.v1.signer) = "creator";
-  option (amino.name)           = "OmniFlix/itc/MsgCancelCampaign";
+  option (amino.name)           = "PartyNite/itc/MsgCancelCampaign";
   option (gogoproto.equal)      = false;
 
   uint64 campaign_id = 1;
@@ -88,7 +88,7 @@ message MsgCancelCampaignResponse {}
 
 message MsgClaim {
   option (cosmos.msg.v1.signer) = "claimer";
-  option (amino.name)           = "OmniFlix/itc/MsgClaim";
+  option (amino.name)           = "PartyNite/itc/MsgClaim";
   option (gogoproto.equal)      = false;
 
   uint64 campaign_id = 1;
@@ -101,7 +101,7 @@ message MsgClaimResponse {}
 
 message MsgDepositCampaign {
   option (cosmos.msg.v1.signer) = "depositor";
-  option (amino.name)           = "OmniFlix/itc/MsgDepositCampaign";
+  option (amino.name)           = "PartyNite/itc/MsgDepositCampaign";
   option (gogoproto.equal)      = false;
 
   uint64                    campaign_id = 1;

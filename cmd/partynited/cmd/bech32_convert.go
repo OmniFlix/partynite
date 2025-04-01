@@ -14,13 +14,13 @@ var flagBech32Prefix = "prefix"
 func AddBech32ConvertCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bech32-convert [address]",
-		Short: "Convert any bech32 string to the omniflix prefix",
-		Long: `Convert any bech32 string to the omniflix prefix
+		Short: "Convert any bech32 string to the partynite prefix",
+		Long: `Convert any bech32 string to the partynite prefix
 
 Example:
-	omniflixhubd debug bech32-convert juno1a6zlyvpnksx8wr6wz8wemur2xe8zyh0yst53ep
+	partynited debug bech32-convert partynite1a6zlyvpnksx8wr6wz8wemur2xe8zyh0yst53ep
 
-	omniflixhubd debug bech32-convert cosmos1673f0t8p893rqyqe420mgwwz92ac4qv6n0nsjx --prefix omniflix
+	partynited debug bech32-convert partynite1a6zlyvpnksx8wr6wz8wemur2xe8zyh0yst53ep --prefix partynite
 	`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {

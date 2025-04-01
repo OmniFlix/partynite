@@ -46,7 +46,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// NewRootCmd creates a new root command for omniflixhubd. It is called once in the
+// NewRootCmd creates a new root command for partynited. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	// Set config for prefixes
@@ -56,7 +56,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	tempDir := tempDir()
 	initAppOptions.Set(flags.FlagHome, tempDir)
 
-	tempApp := app.NewOmniFlixApp(
+	tempApp := app.NewPartyNiteApp(
 		log.NewNopLogger(),
 		dbm.NewMemDB(),
 		nil,
@@ -90,7 +90,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 
 	rootCmd := &cobra.Command{
 		Use:   app.Name + "d",
-		Short: "OmniFlix Hub App",
+		Short: "PartyNite App",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			cmd.SetOut(cmd.OutOrStdout())
 			cmd.SetErr(cmd.ErrOrStderr())
@@ -155,7 +155,7 @@ func initCometBftConfig() *tmcfg.Config {
 	return cfg
 }
 
-func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, tempApp *app.OmniFlixApp) {
+func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, tempApp *app.PartyNiteApp) {
 	ac := appCreator{
 		encCfg: encodingConfig,
 	}
@@ -166,7 +166,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, t
 			banktypes.GenesisBalancesIterator{},
 			app.DefaultNodeHome,
 			genutiltypes.DefaultMessageValidator,
-			encodingConfig.TxConfig.SigningContext().ValidatorAddressCodec(),
+			tempApp.StakingKeeper.ValidatorAddressCodec(),
 		),
 		genutilcli.MigrateGenesisCmd(genutilcli.MigrationMap),
 		genutilcli.GenTxCmd(
@@ -174,9 +174,10 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, t
 			encodingConfig.TxConfig,
 			banktypes.GenesisBalancesIterator{},
 			app.DefaultNodeHome,
-			encodingConfig.TxConfig.SigningContext().ValidatorAddressCodec(),
+			tempApp.StakingKeeper.ValidatorAddressCodec(),
 		),
 		genutilcli.ValidateGenesisCmd(tempApp.ModuleBasics),
+		genutilcli.AddGenesisAccountCmd(app.DefaultNodeHome, tempApp.AccountKeeper.AddressCodec()),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		addDebugCommands(debug.Cmd()),
 		pruning.Cmd(ac.newApp, app.DefaultNodeHome),
@@ -272,7 +273,7 @@ func (ac appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, 
 
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
-	return app.NewOmniFlixApp(
+	return app.NewPartyNiteApp(
 		logger,
 		db,
 		traceStore,
@@ -297,7 +298,7 @@ func (ac appCreator) appExport(
 	appOpts servertypes.AppOptions,
 	modulesToExport []string,
 ) (servertypes.ExportedApp, error) {
-	var anApp *app.OmniFlixApp
+	var anApp *app.PartyNiteApp
 
 	homePath, ok := appOpts.Get(flags.FlagHome).(string)
 	if !ok || homePath == "" {
@@ -305,7 +306,7 @@ func (ac appCreator) appExport(
 	}
 
 	if height != -1 {
-		anApp = app.NewOmniFlixApp(
+		anApp = app.NewPartyNiteApp(
 			logger,
 			db,
 			traceStore,
@@ -321,7 +322,7 @@ func (ac appCreator) appExport(
 			return servertypes.ExportedApp{}, err
 		}
 	} else {
-		anApp = app.NewOmniFlixApp(
+		anApp = app.NewPartyNiteApp(
 			logger,
 			db,
 			traceStore,
@@ -337,7 +338,7 @@ func (ac appCreator) appExport(
 	return anApp.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs, modulesToExport)
 }
 
-func autoCliOpts(initClientCtx client.Context, tempApp *app.OmniFlixApp) autocli.AppOptions {
+func autoCliOpts(initClientCtx client.Context, tempApp *app.PartyNiteApp) autocli.AppOptions {
 	modules := make(map[string]appmodule.AppModule)
 	for _, m := range tempApp.ModuleManager().Modules {
 		if moduleWithName, ok := m.(module.HasName); ok {

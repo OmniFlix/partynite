@@ -1,9 +1,9 @@
 syntax = "proto3";
-package OmniFlix.itc.v1;
+package PartyNite.itc.v1;
 
 import "gogoproto/gogo.proto";
-import "OmniFlix/itc/v1/params.proto";
-import "OmniFlix/itc/v1/itc.proto";
+import "PartyNite/itc/v1/params.proto";
+import "PartyNite/itc/v1/itc.proto";
 
 option go_package = "github.com/OmniFlix/omniflixhub/v5/x/itc/types";
 

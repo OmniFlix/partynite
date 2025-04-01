@@ -5,7 +5,7 @@ import (
 )
 
 // BeginBlockForks is intended to be run in a chain upgrade.
-func BeginBlockForks(ctx sdk.Context, app *OmniFlixApp) {
+func BeginBlockForks(ctx sdk.Context, app *PartyNiteApp) {
 	for _, fork := range Forks {
 		if ctx.BlockHeight() == fork.UpgradeHeight {
 			fork.BeginForkLogic(ctx, &app.AppKeepers)
