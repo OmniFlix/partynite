@@ -14,13 +14,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/client/debug"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/prometheus/client_golang/prometheus"
 
 	"cosmossdk.io/client/v2/autocli"
 	"cosmossdk.io/core/appmodule"
 	"cosmossdk.io/log"
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/OmniFlix/omniflixhub/v5/app"
 	"github.com/OmniFlix/omniflixhub/v5/app/params"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
@@ -69,8 +66,7 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 		0,
 		encodingConfig,
 		initAppOptions,
-		nil,
-		baseapp.SetChainID("omniflixhub-1"),
+		baseapp.SetChainID("partynite-1"),
 	)
 	defer func() {
 		if err := tempApp.Close(); err != nil {
@@ -202,7 +198,6 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig, t
 
 func addModuleInitFlags(startCmd *cobra.Command) {
 	crisis.AddModuleInitFlags(startCmd)
-	wasm.AddModuleInitFlags(startCmd)
 }
 
 func tempDir() string {
@@ -275,11 +270,6 @@ func (ac appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, 
 		skipUpgradeHeights[int64(h)] = true
 	}
 
-	var wasmOpts []wasmkeeper.Option
-	if cast.ToBool(appOpts.Get("telemetry.enabled")) {
-		wasmOpts = append(wasmOpts, wasmkeeper.WithVMCacheMetrics(prometheus.DefaultRegisterer))
-	}
-
 	baseappOptions := server.DefaultBaseappOptions(appOpts)
 
 	return app.NewOmniFlixApp(
@@ -292,7 +282,6 @@ func (ac appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, 
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
 		ac.encCfg,
 		appOpts,
-		wasmOpts,
 		baseappOptions...,
 	)
 }
@@ -315,7 +304,6 @@ func (ac appCreator) appExport(
 		return servertypes.ExportedApp{}, errors.New("application home not set")
 	}
 
-	var emptyWasmOpts []wasmkeeper.Option
 	if height != -1 {
 		anApp = app.NewOmniFlixApp(
 			logger,
@@ -327,7 +315,6 @@ func (ac appCreator) appExport(
 			uint(1),
 			ac.encCfg,
 			appOpts,
-			emptyWasmOpts,
 		)
 
 		if err := anApp.LoadHeight(height); err != nil {
@@ -344,7 +331,6 @@ func (ac appCreator) appExport(
 			uint(1),
 			ac.encCfg,
 			appOpts,
-			emptyWasmOpts,
 		)
 	}
 

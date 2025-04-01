@@ -5,8 +5,6 @@ import (
 	"os"
 	"time"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	apphelpers "github.com/OmniFlix/omniflixhub/v5/app/helpers"
@@ -174,7 +172,6 @@ func SetupWithCustomHomeAndChainId(isCheckTx bool, dir, chainId string) *OmniFli
 		0,
 		encodingConfig,
 		sims.EmptyAppOptions{},
-		[]wasmkeeper.Option{},
 		baseapp.SetChainID(chainId))
 	if !isCheckTx {
 		if len(defaultGenesisStatebytes) == 0 {
@@ -217,7 +214,7 @@ func SetupTestingAppWithLevelDb(isCheckTx bool) (app *OmniFlixApp, cleanupFn fun
 	if err != nil {
 		panic(err)
 	}
-	app = NewOmniFlixApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, encodingConfig, sims.EmptyAppOptions{}, []wasmkeeper.Option{}, baseapp.SetChainID("omniflixhub-1"))
+	app = NewOmniFlixApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, encodingConfig, sims.EmptyAppOptions{}, baseapp.SetChainID("omniflixhub-1"))
 	if !isCheckTx {
 		genesisState := GenesisStateWithValSet(app)
 		stateBytes, err := json.MarshalIndent(genesisState, "", " ")

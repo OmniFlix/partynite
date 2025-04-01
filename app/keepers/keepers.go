@@ -1,9 +1,6 @@
 package keepers
 
 import (
-	"fmt"
-	"path/filepath"
-
 	ibcclienttypes "github.com/cosmos/ibc-go/v8/modules/core/02-client/types"
 	ibcconnectiontypes "github.com/cosmos/ibc-go/v8/modules/core/03-connection/types"
 
@@ -11,11 +8,6 @@ import (
 
 	"cosmossdk.io/log"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	"github.com/OmniFlix/omniflixhub/v5/x/ics721nft"
-	nfttransfer "github.com/bianjieai/nft-transfer"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/runtime"
@@ -60,10 +52,6 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 
-	"github.com/OmniFlix/omniflixhub/v5/x/globalfee"
-	globalfeekeeper "github.com/OmniFlix/omniflixhub/v5/x/globalfee/keeper"
-	globalfeetypes "github.com/OmniFlix/omniflixhub/v5/x/globalfee/types"
-
 	"github.com/cosmos/cosmos-sdk/x/group"
 	groupkeeper "github.com/cosmos/cosmos-sdk/x/group/keeper"
 	mintkeeper "github.com/cosmos/cosmos-sdk/x/mint/keeper"
@@ -79,9 +67,6 @@ import (
 
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
-	tokenfactorykeeper "github.com/OmniFlix/omniflixhub/v5/x/tokenfactory/keeper"
-	tokenfactorytypes "github.com/OmniFlix/omniflixhub/v5/x/tokenfactory/types"
 
 	upgradekeeper "cosmossdk.io/x/upgrade/keeper"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
@@ -104,9 +89,6 @@ import (
 	ibchookskeeper "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/keeper"
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
 
-	allockeeper "github.com/OmniFlix/omniflixhub/v5/x/alloc/keeper"
-	alloctypes "github.com/OmniFlix/omniflixhub/v5/x/alloc/types"
-
 	onftkeeper "github.com/OmniFlix/omniflixhub/v5/x/onft/keeper"
 	onfttypes "github.com/OmniFlix/omniflixhub/v5/x/onft/types"
 
@@ -118,18 +100,7 @@ import (
 
 	streampaykeeper "github.com/OmniFlix/streampay/v2/x/streampay/keeper"
 	streampaytypes "github.com/OmniFlix/streampay/v2/x/streampay/types"
-
-	ibcnfttransferkeeper "github.com/bianjieai/nft-transfer/keeper"
-	ibcnfttransfertypes "github.com/bianjieai/nft-transfer/types"
-
-	tfbindings "github.com/OmniFlix/omniflixhub/v5/x/tokenfactory/bindings"
 )
-
-var tokenFactoryCapabilities = []string{
-	tokenfactorytypes.EnableBurnFrom,
-	tokenfactorytypes.EnableForceTransfer,
-	tokenfactorytypes.EnableSetMetadata,
-}
 
 type AppKeepers struct {
 	// keys to access the substores
@@ -160,12 +131,7 @@ type AppKeepers struct {
 	AuthzKeeper           authzkeeper.Keeper
 	CircuitKeeper         circuitkeeper.Keeper
 	ConsensusParamsKeeper consensusparamkeeper.Keeper
-	GlobalFeeKeeper       globalfeekeeper.Keeper
 	GroupKeeper           groupkeeper.Keeper
-	TokenFactoryKeeper    tokenfactorykeeper.Keeper
-	IBCNFTTransferKeeper  ibcnfttransferkeeper.Keeper
-	WasmKeeper            wasmkeeper.Keeper
-	ContractKeeper        *wasmkeeper.PermissionedKeeper
 
 	// make scoped keepers public for test purposes
 	ScopedIBCKeeper         capabilitykeeper.ScopedKeeper
@@ -173,13 +139,10 @@ type AppKeepers struct {
 	ScopedICAHostKeeper     capabilitykeeper.ScopedKeeper
 	ScopedICQKeeper         capabilitykeeper.ScopedKeeper
 	ScopedNFTTransferKeeper capabilitykeeper.ScopedKeeper
-	ScopedWasmKeeper        capabilitykeeper.ScopedKeeper
 
 	// Middleware wrapper
-	Ics20WasmHooks   *ibchooks.WasmHooks
 	HooksICS4Wrapper ibchooks.ICS4Middleware
 
-	AllocKeeper       allockeeper.Keeper
 	ONFTKeeper        onftkeeper.Keeper
 	MarketplaceKeeper marketplacekeeper.Keeper
 	StreamPayKeeper   streampaykeeper.Keeper
@@ -198,7 +161,6 @@ func NewAppKeeper(
 	invCheckPeriod uint,
 	logger log.Logger,
 	appOpts servertypes.AppOptions,
-	wasmOpts []wasmkeeper.Option,
 ) AppKeepers {
 	appKeepers := AppKeepers{}
 
@@ -234,8 +196,6 @@ func NewAppKeeper(
 	appKeepers.ScopedTransferKeeper = appKeepers.CapabilityKeeper.ScopeToModule(ibctransfertypes.ModuleName)
 	appKeepers.ScopedICAHostKeeper = appKeepers.CapabilityKeeper.ScopeToModule(icahosttypes.SubModuleName)
 	appKeepers.ScopedICQKeeper = appKeepers.CapabilityKeeper.ScopeToModule(icqtypes.ModuleName)
-	appKeepers.ScopedNFTTransferKeeper = appKeepers.CapabilityKeeper.ScopeToModule(ibcnfttransfertypes.ModuleName)
-	appKeepers.ScopedWasmKeeper = appKeepers.CapabilityKeeper.ScopeToModule(wasmtypes.ModuleName)
 	appKeepers.CapabilityKeeper.Seal()
 
 	appKeepers.CrisisKeeper = crisiskeeper.NewKeeper(
@@ -407,13 +367,6 @@ func NewAppKeeper(
 	)
 	appKeepers.IBCHooksKeeper = hooksKeeper
 
-	wasmHooks := ibchooks.NewWasmHooks(&appKeepers.IBCHooksKeeper, nil, bech32AccountAddressPrefix) // The contract keeper needs to be set later
-	appKeepers.Ics20WasmHooks = &wasmHooks
-	appKeepers.HooksICS4Wrapper = ibchooks.NewICS4Middleware(
-		appKeepers.IBCKeeper.ChannelKeeper,
-		appKeepers.Ics20WasmHooks,
-	)
-
 	// initialize ibc packet forwarding middleware router
 	appKeepers.PacketForwardKeeper = packetforwardkeeper.NewKeeper(
 		appCodec,
@@ -470,35 +423,6 @@ func NewAppKeeper(
 	)
 	icqModule := icq.NewIBCModule(appKeepers.ICQKeeper)
 
-	appKeepers.GlobalFeeKeeper = globalfeekeeper.NewKeeper(
-		appCodec,
-		keys[globalfeetypes.StoreKey],
-		govModAddress,
-	)
-
-	// Create the TokenFactory Keeper
-	appKeepers.TokenFactoryKeeper = tokenfactorykeeper.NewKeeper(
-		appCodec,
-		appKeepers.keys[tokenfactorytypes.StoreKey],
-		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-		appKeepers.DistrKeeper,
-		tokenFactoryCapabilities,
-		govModAddress,
-	)
-
-	appKeepers.AllocKeeper = *allockeeper.NewKeeper(
-		appCodec,
-		appKeepers.keys[alloctypes.StoreKey],
-		appKeepers.keys[alloctypes.MemStoreKey],
-
-		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-		appKeepers.StakingKeeper,
-		appKeepers.DistrKeeper,
-		govModAddress,
-	)
-
 	appKeepers.ONFTKeeper = onftkeeper.NewKeeper(
 		appCodec,
 		appKeepers.keys[onfttypes.StoreKey],
@@ -507,20 +431,6 @@ func NewAppKeeper(
 		appKeepers.DistrKeeper,
 		govModAddress,
 	)
-
-	appKeepers.IBCNFTTransferKeeper = ibcnfttransferkeeper.NewKeeper(
-		appCodec,
-		keys[ibcnfttransfertypes.StoreKey],
-		govModAddress,
-		appKeepers.HooksICS4Wrapper,
-		appKeepers.IBCKeeper.ChannelKeeper,
-		appKeepers.IBCKeeper.PortKeeper,
-		appKeepers.AccountKeeper,
-		ics721nft.NewKeeper(appCodec, appKeepers.ONFTKeeper, appKeepers.AccountKeeper, appKeepers.BankKeeper),
-		appKeepers.ScopedNFTTransferKeeper,
-	)
-
-	nfttransferIBCModule := nfttransfer.NewIBCModule(appKeepers.IBCNFTTransferKeeper)
 
 	appKeepers.MarketplaceKeeper = marketplacekeeper.NewKeeper(
 		appCodec,
@@ -569,57 +479,8 @@ func NewAppKeeper(
 	ibcRouter.
 		AddRoute(ibctransfertypes.ModuleName, ibcTransferStack).
 		AddRoute(icahosttypes.SubModuleName, icaHostIBCModule).
-		AddRoute(icqtypes.ModuleName, icqModule).
-		AddRoute(ibcnfttransfertypes.ModuleName, nfttransferIBCModule)
+		AddRoute(icqtypes.ModuleName, icqModule)
 
-	// wasm configuration
-
-	wasmDir := filepath.Join(homePath, "wasm")
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
-	if err != nil {
-		panic(fmt.Sprintf("error while reading wasm config: %s", err))
-	}
-
-	// custom tokenfactory messages
-	tfOpts := tfbindings.RegisterCustomPlugins(appKeepers.BankKeeper, &appKeepers.TokenFactoryKeeper)
-	wasmOpts = append(wasmOpts, tfOpts...)
-
-	querierOpts := wasmkeeper.WithQueryPlugins(
-		&wasmkeeper.QueryPlugins{
-			Stargate: wasmkeeper.AcceptListStargateQuerier(
-				AcceptedStargateQueries(),
-				bApp.GRPCQueryRouter(),
-				appCodec,
-			),
-		})
-
-	wasmOpts = append(wasmOpts, querierOpts)
-
-	appKeepers.WasmKeeper = wasmkeeper.NewKeeper(
-		appCodec,
-		runtime.NewKVStoreService(keys[wasmtypes.StoreKey]),
-		appKeepers.AccountKeeper,
-		appKeepers.BankKeeper,
-		appKeepers.StakingKeeper,
-		distrkeeper.NewQuerier(appKeepers.DistrKeeper),
-		&appKeepers.HooksICS4Wrapper,
-		appKeepers.IBCKeeper.ChannelKeeper,
-		appKeepers.IBCKeeper.PortKeeper,
-		appKeepers.ScopedWasmKeeper,
-		appKeepers.TransferKeeper,
-		bApp.MsgServiceRouter(),
-		bApp.GRPCQueryRouter(),
-		wasmDir,
-		wasmConfig,
-		GetWasmCapabilities(),
-		govModAddress,
-		wasmOpts...,
-	)
-	// set the contract keeper for the Ics20WasmHooks
-	appKeepers.ContractKeeper = wasmkeeper.NewDefaultPermissionKeeper(&appKeepers.WasmKeeper)
-	appKeepers.Ics20WasmHooks.ContractKeeper = &appKeepers.WasmKeeper
-
-	ibcRouter.AddRoute(wasmtypes.ModuleName, wasm.NewIBCHandler(appKeepers.WasmKeeper, appKeepers.IBCKeeper.ChannelKeeper, appKeepers.IBCKeeper.ChannelKeeper))
 	appKeepers.IBCKeeper.SetRouter(ibcRouter)
 
 	return appKeepers
@@ -651,10 +512,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icahosttypes.SubModuleName).WithKeyTable(icahosttypes.ParamKeyTable())
 	paramsKeeper.Subspace(icqtypes.ModuleName)
 	paramsKeeper.Subspace(packetforwardtypes.ModuleName)
-	paramsKeeper.Subspace(globalfee.ModuleName)
-	paramsKeeper.Subspace(tokenfactorytypes.ModuleName)
-	paramsKeeper.Subspace(wasmtypes.ModuleName)
-	paramsKeeper.Subspace(alloctypes.ModuleName)
 	paramsKeeper.Subspace(onfttypes.ModuleName)
 	paramsKeeper.Subspace(marketplacetypes.ModuleName)
 	paramsKeeper.Subspace(streampaytypes.ModuleName)

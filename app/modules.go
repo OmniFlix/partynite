@@ -5,12 +5,8 @@ package app
 import (
 	circuittypes "cosmossdk.io/x/circuit/types"
 	"cosmossdk.io/x/nft"
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
+
 	appparams "github.com/OmniFlix/omniflixhub/v5/app/params"
-	"github.com/OmniFlix/omniflixhub/v5/x/globalfee"
-	nfttransfer "github.com/bianjieai/nft-transfer"
-	ibcnfttransfertypes "github.com/bianjieai/nft-transfer/types"
 	addresscodec "github.com/cosmos/cosmos-sdk/codec/address"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -66,9 +62,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/OmniFlix/omniflixhub/v5/x/tokenfactory"
-	tokenfactorytypes "github.com/OmniFlix/omniflixhub/v5/x/tokenfactory/types"
-
 	"cosmossdk.io/x/upgrade"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 
@@ -89,9 +82,6 @@ import (
 
 	ibchooks "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8"
 	ibchookstypes "github.com/cosmos/ibc-apps/modules/ibc-hooks/v8/types"
-
-	"github.com/OmniFlix/omniflixhub/v5/x/alloc"
-	alloctypes "github.com/OmniFlix/omniflixhub/v5/x/alloc/types"
 
 	"github.com/OmniFlix/omniflixhub/v5/x/onft"
 	onfttypes "github.com/OmniFlix/omniflixhub/v5/x/onft/types"
@@ -119,7 +109,6 @@ var (
 		mint.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		gov.NewAppModuleBasic(getGovProposalHandlers()),
-		wasm.AppModuleBasic{},
 		groupmodule.AppModuleBasic{},
 		params.AppModuleBasic{},
 		consensus.AppModuleBasic{},
@@ -138,11 +127,7 @@ var (
 		evidence.AppModuleBasic{},
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
-		globalfee.AppModuleBasic{},
-		tokenfactory.AppModuleBasic{},
-		nfttransfer.AppModuleBasic{},
 
-		alloc.AppModuleBasic{},
 		onft.AppModuleBasic{},
 		marketplace.AppModuleBasic{},
 		streampay.AppModuleBasic{},
@@ -159,12 +144,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		ibcnfttransfertypes.ModuleName: nil,
 		icatypes.ModuleName:            nil,
-		tokenfactorytypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
-		globalfee.ModuleName:           nil,
-		wasmtypes.ModuleName:           {authtypes.Burner},
-		alloctypes.ModuleName:          {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		nft.ModuleName:                 nil,
 		onfttypes.ModuleName:           nil,
 		marketplacetypes.ModuleName:    nil,
@@ -179,7 +159,6 @@ func appModules(
 	skipGenesisInvariants bool,
 ) []module.AppModule {
 	appCodec := encodingConfig.Marshaler
-	bondDenom := app.GetChainBondDenom()
 	return []module.AppModule{
 		genutil.NewAppModule(
 			app.AccountKeeper, app.StakingKeeper, app.BaseApp,
@@ -203,11 +182,6 @@ func appModules(
 			app.AccountKeeper,
 			app.BankKeeper,
 			app.interfaceRegistry,
-		),
-		tokenfactory.NewAppModule(
-			app.AppKeepers.TokenFactoryKeeper,
-			app.AppKeepers.AccountKeeper,
-			app.AppKeepers.BankKeeper,
 		),
 		mint.NewAppModule(appCodec, app.MintKeeper, app.AccountKeeper, nil, app.GetSubspace(minttypes.ModuleName)),
 		slashing.NewAppModule(
@@ -243,22 +217,10 @@ func appModules(
 		params.NewAppModule(app.ParamsKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
 		transfer.NewAppModule(app.TransferKeeper),
-		wasm.NewAppModule(
-			appCodec,
-			&app.WasmKeeper,
-			app.StakingKeeper,
-			app.AccountKeeper,
-			app.BankKeeper,
-			app.MsgServiceRouter(),
-			app.GetSubspace(wasmtypes.ModuleName),
-		),
 		ica.NewAppModule(nil, &app.ICAHostKeeper),
 		icq.NewAppModule(app.ICQKeeper, app.GetSubspace(icqtypes.ModuleName)),
-		nfttransfer.NewAppModule(app.IBCNFTTransferKeeper),
 		packetforward.NewAppModule(app.PacketForwardKeeper, app.GetSubspace(packetforwardtypes.ModuleName)),
 		ibchooks.NewAppModule(app.AccountKeeper),
-		globalfee.NewAppModule(appCodec, app.GlobalFeeKeeper, bondDenom),
-		alloc.NewAppModule(appCodec, app.AllocKeeper, app.GetSubspace(alloctypes.ModuleName)),
 		onft.NewAppModule(
 			appCodec,
 			app.ONFTKeeper,
@@ -321,7 +283,6 @@ func orderBeginBlockers() []string {
 		// upgradetypes.ModuleName,
 		capabilitytypes.ModuleName,
 		minttypes.ModuleName,
-		alloctypes.ModuleName, // must run before distribution module
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName,
@@ -333,20 +294,16 @@ func orderBeginBlockers() []string {
 		paramstypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		ibchookstypes.ModuleName,
-		wasmtypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		icatypes.ModuleName,
 		icqtypes.ModuleName,
 		packetforwardtypes.ModuleName,
-		ibcnfttransfertypes.ModuleName,
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		authtypes.ModuleName,
 		crisistypes.ModuleName,
 		feegrant.ModuleName,
 		circuittypes.ModuleName,
-		globalfee.ModuleName,
-		tokenfactorytypes.ModuleName,
 		group.ModuleName,
 		onfttypes.ModuleName,
 		marketplacetypes.ModuleName,
@@ -370,23 +327,18 @@ func orderEndBlockers() []string {
 		paramstypes.ModuleName,
 		consensusparamtypes.ModuleName,
 		ibchookstypes.ModuleName,
-		wasmtypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		icatypes.ModuleName,
 		icqtypes.ModuleName,
 		packetforwardtypes.ModuleName,
-		ibcnfttransfertypes.ModuleName,
 		minttypes.ModuleName,
 		slashingtypes.ModuleName,
 		distrtypes.ModuleName,
 		ibcexported.ModuleName,
 		feegrant.ModuleName,
 		circuittypes.ModuleName,
-		globalfee.ModuleName,
 		group.ModuleName,
-		tokenfactorytypes.ModuleName,
 		authz.ModuleName,
-		alloctypes.ModuleName,
 		onfttypes.ModuleName,
 		marketplacetypes.ModuleName,
 		streampaytypes.ModuleName,
@@ -424,17 +376,12 @@ func orderInitGenesis() []string {
 		feegrant.ModuleName,
 		circuittypes.ModuleName,
 		ibchookstypes.ModuleName,
-		wasmtypes.ModuleName,
-		globalfee.ModuleName,
 		group.ModuleName,
-		tokenfactorytypes.ModuleName,
 		ibcexported.ModuleName,
 		ibctransfertypes.ModuleName,
 		icatypes.ModuleName,
 		icqtypes.ModuleName,
 		packetforwardtypes.ModuleName,
-		ibcnfttransfertypes.ModuleName,
-		alloctypes.ModuleName,
 		onfttypes.ModuleName,
 		marketplacetypes.ModuleName,
 		streampaytypes.ModuleName,

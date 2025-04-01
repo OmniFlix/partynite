@@ -7,11 +7,9 @@ import (
 	upgradetypes "cosmossdk.io/x/upgrade/types"
 	"github.com/OmniFlix/omniflixhub/v5/app/keepers"
 	"github.com/OmniFlix/omniflixhub/v5/app/upgrades"
-	alloctypes "github.com/OmniFlix/omniflixhub/v5/x/alloc/types"
 	itctypes "github.com/OmniFlix/omniflixhub/v5/x/itc/types"
 	marketplacetypes "github.com/OmniFlix/omniflixhub/v5/x/marketplace/types"
 	onfttypes "github.com/OmniFlix/omniflixhub/v5/x/onft/types"
-	tokenfactorytypes "github.com/OmniFlix/omniflixhub/v5/x/tokenfactory/types"
 	streampaytypes "github.com/OmniFlix/streampay/v2/x/streampay/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -71,8 +69,6 @@ func CreateV2UpgradeHandler(
 				keyTable = icahosttypes.ParamKeyTable()
 
 			// omniflix
-			case alloctypes.ModuleName:
-				keyTable = alloctypes.ParamKeyTable()
 			case onfttypes.ModuleName:
 				keyTable = onfttypes.ParamKeyTable()
 			case marketplacetypes.ModuleName:
@@ -124,12 +120,6 @@ func CreateV2UpgradeHandler(
 		}
 		stakingParams.MinCommissionRate = sdkmath.LegacyNewDecWithPrec(5, 2)
 		err = keepers.StakingKeeper.SetParams(ctx, stakingParams)
-		if err != nil {
-			return nil, err
-		}
-
-		// set token-factory denom creation fee
-		err = keepers.TokenFactoryKeeper.SetParams(ctx, tokenfactorytypes.DefaultParams())
 		if err != nil {
 			return nil, err
 		}

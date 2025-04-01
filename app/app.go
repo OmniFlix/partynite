@@ -7,14 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/log"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/OmniFlix/omniflixhub/v5/app/openapiconsole"
 	appparams "github.com/OmniFlix/omniflixhub/v5/app/params"
 	"github.com/OmniFlix/omniflixhub/v5/docs"
@@ -64,18 +61,6 @@ import (
 )
 
 const Name = "omniflixhub"
-
-var (
-	// ProposalsEnabled If EnabledSpecificProposals is "", and this is "true", then enable all x/wasm proposals.
-	// If EnabledSpecificProposals is "", and this is not "true", then disable all x/wasm proposals.
-	ProposalsEnabled = "true"
-	// EnableSpecificProposals If set to non-empty string it must be comma-separated list of values that are all a subset
-	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
-	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
-	EnableSpecificProposals = ""
-
-	EmptyWasmOpts [][]wasmkeeper.Option
-)
 
 func getGovProposalHandlers() []govclient.ProposalHandler {
 	var govProposalHandlers []govclient.ProposalHandler
@@ -132,7 +117,6 @@ func NewOmniFlixApp(
 	invCheckPeriod uint,
 	encodingConfig appparams.EncodingConfig,
 	appOpts servertypes.AppOptions,
-	wasmOpts []wasmkeeper.Option,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *OmniFlixApp {
 	appCodec := encodingConfig.Marshaler
@@ -169,7 +153,6 @@ func NewOmniFlixApp(
 		invCheckPeriod,
 		logger,
 		appOpts,
-		wasmOpts,
 	)
 
 	/****  Module Options ****/
@@ -234,11 +217,6 @@ func NewOmniFlixApp(
 	}
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
-	if err != nil {
-		panic("error while reading wasm config: " + err.Error())
-	}
-
 	// initialize stores
 	app.MountKVStores(app.GetKVStoreKey())
 	app.MountTransientStores(app.GetTransientStoreKey())
@@ -256,14 +234,11 @@ func NewOmniFlixApp(
 				SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
-			GovKeeper:         app.GovKeeper,
-			IBCKeeper:         app.IBCKeeper,
-			Codec:             appCodec,
-			WasmConfig:        wasmConfig,
-			TxCounterStoreKey: app.AppKeepers.GetKey(wasmtypes.StoreKey),
+			GovKeeper: app.GovKeeper,
+			IBCKeeper: app.IBCKeeper,
+			Codec:     appCodec,
 
 			BypassMinFeeMsgTypes: GetDefaultBypassFeeMessages(),
-			GlobalFeeKeeper:      app.GlobalFeeKeeper,
 			StakingKeeper:        *app.StakingKeeper,
 			CircuitKeeper:        &app.CircuitKeeper,
 		},
@@ -286,16 +261,6 @@ func NewOmniFlixApp(
 	app.SetEndBlocker(app.EndBlocker)
 	app.SetPrecommiter(app.PreCommitter)
 	app.SetPrepareCheckStater(app.PrepareCheckStater)
-
-	// Register snapshot extensions to enable state-sync for wasm.
-	if manager := app.SnapshotManager(); manager != nil {
-		err := manager.RegisterExtensions(
-			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmKeeper),
-		)
-		if err != nil {
-			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
-		}
-	}
 
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {

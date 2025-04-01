@@ -4,7 +4,6 @@ import (
 	"context"
 
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/OmniFlix/omniflixhub/v5/app/keepers"
 	"github.com/OmniFlix/omniflixhub/v5/app/upgrades"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,14 +22,6 @@ func CreateV3UpgradeHandler(
 		// NOTE: DO NOT PUT ANY STATE CHANGES BEFORE RunMigrations().
 		versionMap, err := mm.RunMigrations(ctx, cfg, fromVM)
 		if err != nil {
-			return nil, err
-		}
-
-		params := wasmtypes.DefaultParams()
-		// Permissioned cosmwasm
-		params.CodeUploadAccess = wasmtypes.AllowNobody
-		params.InstantiateDefaultPermission = wasmtypes.AccessTypeEverybody
-		if err := keepers.WasmKeeper.SetParams(ctx, params); err != nil {
 			return nil, err
 		}
 
