@@ -4,12 +4,7 @@ import (
 	errorsmod "cosmossdk.io/errors"
 	storetypes "cosmossdk.io/store/types"
 	circuitante "cosmossdk.io/x/circuit/ante"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	globalfeeante "github.com/OmniFlix/omniflixhub/v5/x/globalfee/ante"
-	globalfeekeeper "github.com/OmniFlix/omniflixhub/v5/x/globalfee/keeper"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -20,7 +15,6 @@ import (
 )
 
 // Lower back to 1 mil after https://github.com/cosmos/relayer/issues/1255
-const maxBypassMinFeeMsgGasUsage = 2_000_000
 
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
 // channel keeper.
@@ -30,14 +24,12 @@ type HandlerOptions struct {
 	GovKeeper         govkeeper.Keeper
 	IBCKeeper         *ibckeeper.Keeper
 	TxCounterStoreKey *storetypes.KVStoreKey
-	WasmConfig        wasmtypes.WasmConfig
 	Codec             codec.BinaryCodec
 
 	BypassMinFeeMsgTypes []string
 
-	GlobalFeeKeeper globalfeekeeper.Keeper
-	StakingKeeper   stakingkeeper.Keeper
-	CircuitKeeper   circuitante.CircuitBreaker
+	StakingKeeper stakingkeeper.Keeper
+	CircuitKeeper circuitante.CircuitBreaker
 }
 
 func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
@@ -58,19 +50,11 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(), // Outermost AnteDecorator, SetUpContext must be called first
-		wasmkeeper.NewLimitSimulationGasDecorator(options.WasmConfig.SimulationGasLimit),
-		wasmkeeper.NewCountTXDecorator(runtime.NewKVStoreService(options.TxCounterStoreKey)),
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		globalfeeante.NewFeeDecorator(
-			options.BypassMinFeeMsgTypes,
-			options.GlobalFeeKeeper,
-			options.StakingKeeper,
-			maxBypassMinFeeMsgGasUsage,
-		),
 		ante.NewDeductFeeDecorator(
 			options.AccountKeeper,
 			options.BankKeeper,

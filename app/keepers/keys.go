@@ -6,15 +6,10 @@ import (
 	evidencetypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
 	upgradetypes "cosmossdk.io/x/upgrade/types"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	alloctypes "github.com/OmniFlix/omniflixhub/v5/x/alloc/types"
-	globalfeetypes "github.com/OmniFlix/omniflixhub/v5/x/globalfee/types"
 	itctypes "github.com/OmniFlix/omniflixhub/v5/x/itc/types"
 	marketplacetypes "github.com/OmniFlix/omniflixhub/v5/x/marketplace/types"
 	onfttypes "github.com/OmniFlix/omniflixhub/v5/x/onft/types"
-	tokenfactorytypes "github.com/OmniFlix/omniflixhub/v5/x/tokenfactory/types"
 	streampaytypes "github.com/OmniFlix/streampay/v2/x/streampay/types"
-	ibcnfttransfertypes "github.com/bianjieai/nft-transfer/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -55,17 +50,12 @@ func (appKeepers *AppKeepers) GenerateKeys() {
 		icqtypes.StoreKey,
 		packetforwardtypes.StoreKey,
 		ibchookstypes.StoreKey,
-		ibcnfttransfertypes.StoreKey,
 		capabilitytypes.StoreKey,
 		crisistypes.StoreKey,
 		feegrant.StoreKey,
 		circuittypes.StoreKey,
-		wasmtypes.StoreKey,
-		globalfeetypes.StoreKey,
 		group.StoreKey,
-		tokenfactorytypes.StoreKey,
 		authzkeeper.StoreKey,
-		alloctypes.StoreKey,
 		onfttypes.StoreKey,
 		marketplacetypes.StoreKey,
 		streampaytypes.StoreKey,

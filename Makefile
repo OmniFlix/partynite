@@ -1,5 +1,5 @@
-APP_NAME = OmniFlixHub
-DAEMON_NAME = omniflixhubd
+APP_NAME = PartyNite
+DAEMON_NAME = partynited
 LEDGER_ENABLED ?= true
 
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
@@ -95,9 +95,9 @@ endif
 all: go.sum install
 
 install: go.sum
-		go install -mod=readonly $(BUILD_FLAGS) ./cmd/omniflixhubd
+		go install -mod=readonly $(BUILD_FLAGS) ./cmd/partynited
 build:
-		go build $(BUILD_FLAGS) -o ${BUILDDIR}/${DAEMON_NAME}  ./cmd/omniflixhubd
+		go build $(BUILD_FLAGS) -o ${BUILDDIR}/${DAEMON_NAME}  ./cmd/partynited
 
 go.sum: go.mod
 		@echo "--> Ensure dependencies have not been modified"

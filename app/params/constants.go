@@ -1,7 +1,7 @@
 package params
 
 const (
-	Name                    = "OmniFlixHub"
+	Name                    = "PartyNite"
 	BondDenom               = "uflix"
-	Bech32AccountAddrPrefix = "omniflix"
+	Bech32AccountAddrPrefix = "partynite"
 )

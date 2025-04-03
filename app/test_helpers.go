@@ -5,8 +5,6 @@ import (
 	"os"
 	"time"
 
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
-
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	apphelpers "github.com/OmniFlix/omniflixhub/v5/app/helpers"
@@ -66,7 +64,7 @@ func (EmptyAppOptions) Get(_ string) interface{} { return nil }
 // that also act as delegators. For simplicity, each validator is bonded with a delegation
 // of one consensus engine unit in the default token of the omniFlixApp from first genesis
 // account. A Nop logger is set in omniFlixApp.
-func GenesisStateWithValSet(omniflixapp *OmniFlixApp) GenesisState {
+func GenesisStateWithValSet(app *PartyNiteApp) GenesisState {
 	privVal := apphelpers.NewPV()
 	pubKey, _ := privVal.GetPubKey()
 	validator := tmtypes.NewValidator(pubKey, 1)
@@ -158,13 +156,13 @@ func GenesisStateWithValSet(omniflixapp *OmniFlixApp) GenesisState {
 var defaultGenesisStatebytes = []byte{}
 
 // SetupWithCustomHome initializes a new OmniFlixApp with a custom home directory
-func SetupWithCustomHome(isCheckTx bool, dir string) *OmniFlixApp {
-	return SetupWithCustomHomeAndChainId(isCheckTx, dir, "omniflixhub-1")
+func SetupWithCustomHome(isCheckTx bool, dir string) *PartyNiteApp {
+	return SetupWithCustomHomeAndChainId(isCheckTx, dir, "partynite-1")
 }
 
-func SetupWithCustomHomeAndChainId(isCheckTx bool, dir, chainId string) *OmniFlixApp {
+func SetupWithCustomHomeAndChainId(isCheckTx bool, dir, chainId string) *PartyNiteApp {
 	db := cosmosdb.NewMemDB()
-	app := NewOmniFlixApp(
+	app := NewPartyNiteApp(
 		log.NewNopLogger(),
 		db,
 		nil,
@@ -174,7 +172,6 @@ func SetupWithCustomHomeAndChainId(isCheckTx bool, dir, chainId string) *OmniFli
 		0,
 		encodingConfig,
 		sims.EmptyAppOptions{},
-		[]wasmkeeper.Option{},
 		baseapp.SetChainID(chainId))
 	if !isCheckTx {
 		if len(defaultGenesisStatebytes) == 0 {
@@ -202,13 +199,13 @@ func SetupWithCustomHomeAndChainId(isCheckTx bool, dir, chainId string) *OmniFli
 	return app
 }
 
-func Setup(isCheckTx bool) *OmniFlixApp {
+func Setup(isCheckTx bool) *PartyNiteApp {
 	return SetupWithCustomHome(isCheckTx, DefaultNodeHome)
 }
 
 // SetupTestingAppWithLevelDb initializes a new OmniFlixApp intended for testing,
 // with LevelDB as a db.
-func SetupTestingAppWithLevelDb(isCheckTx bool) (app *OmniFlixApp, cleanupFn func()) {
+func SetupTestingAppWithLevelDb(isCheckTx bool) (app *PartyNiteApp, cleanupFn func()) {
 	dir, err := os.MkdirTemp(os.TempDir(), "omniflix_leveldb_testing")
 	if err != nil {
 		panic(err)
@@ -217,7 +214,7 @@ func SetupTestingAppWithLevelDb(isCheckTx bool) (app *OmniFlixApp, cleanupFn fun
 	if err != nil {
 		panic(err)
 	}
-	app = NewOmniFlixApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, encodingConfig, sims.EmptyAppOptions{}, []wasmkeeper.Option{}, baseapp.SetChainID("omniflixhub-1"))
+	app = NewPartyNiteApp(log.NewNopLogger(), db, nil, true, map[int64]bool{}, DefaultNodeHome, 5, encodingConfig, sims.EmptyAppOptions{}, baseapp.SetChainID("partynite-1"))
 	if !isCheckTx {
 		genesisState := GenesisStateWithValSet(app)
 		stateBytes, err := json.MarshalIndent(genesisState, "", " ")
@@ -230,7 +227,7 @@ func SetupTestingAppWithLevelDb(isCheckTx bool) (app *OmniFlixApp, cleanupFn fun
 				Validators:      []abci.ValidatorUpdate{},
 				ConsensusParams: sims.DefaultConsensusParams,
 				AppStateBytes:   stateBytes,
-				ChainId:         "omniflixhub-1",
+				ChainId:         "partynite-1",
 			},
 		)
 		if err != nil {

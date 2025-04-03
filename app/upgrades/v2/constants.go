@@ -3,8 +3,6 @@ package v2
 import (
 	store "cosmossdk.io/store/types"
 	"github.com/OmniFlix/omniflixhub/v5/app/upgrades"
-	globalfeetypes "github.com/OmniFlix/omniflixhub/v5/x/globalfee/types"
-	tokenfactorytypes "github.com/OmniFlix/omniflixhub/v5/x/tokenfactory/types"
 	ibcnfttransfertypes "github.com/bianjieai/nft-transfer/types"
 	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
@@ -21,10 +19,8 @@ var Upgrade = upgrades.Upgrade{
 		Added: []string{
 			consensustypes.ModuleName,
 			crisistypes.ModuleName,
-			globalfeetypes.ModuleName,
 			group.ModuleName,
 			icqtypes.ModuleName,
-			tokenfactorytypes.ModuleName,
 			ibcnfttransfertypes.ModuleName,
 		},
 	},

@@ -7,14 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/CosmWasm/wasmd/x/wasm"
-	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/posthandler"
 
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	"cosmossdk.io/log"
-	wasmkeeper "github.com/CosmWasm/wasmd/x/wasm/keeper"
 	"github.com/OmniFlix/omniflixhub/v5/app/openapiconsole"
 	appparams "github.com/OmniFlix/omniflixhub/v5/app/params"
 	"github.com/OmniFlix/omniflixhub/v5/docs"
@@ -63,19 +60,7 @@ import (
 	v520 "github.com/OmniFlix/omniflixhub/v5/app/upgrades/v520"
 )
 
-const Name = "omniflixhub"
-
-var (
-	// ProposalsEnabled If EnabledSpecificProposals is "", and this is "true", then enable all x/wasm proposals.
-	// If EnabledSpecificProposals is "", and this is not "true", then disable all x/wasm proposals.
-	ProposalsEnabled = "true"
-	// EnableSpecificProposals If set to non-empty string it must be comma-separated list of values that are all a subset
-	// of "EnableAllProposals" (takes precedence over ProposalsEnabled)
-	// https://github.com/CosmWasm/wasmd/blob/02a54d33ff2c064f3539ae12d75d027d9c665f05/x/wasm/internal/types/proposal.go#L28-L34
-	EnableSpecificProposals = ""
-
-	EmptyWasmOpts [][]wasmkeeper.Option
-)
+const Name = "partynite"
 
 func getGovProposalHandlers() []govclient.ProposalHandler {
 	var govProposalHandlers []govclient.ProposalHandler
@@ -91,12 +76,12 @@ var (
 	Forks           []upgrades.Fork
 )
 
-var _ runtime.AppI = (*OmniFlixApp)(nil)
+var _ runtime.AppI = (*PartyNiteApp)(nil)
 
-// OmniFlixApp extends an ABCI application, but with most of its parameters exported.
+// PartyNiteApp extends an ABCI application, but with most of its parameters exported.
 // They are exported for convenience in creating helper functions, as object
 // capabilities aren't needed for testing.
-type OmniFlixApp struct {
+type PartyNiteApp struct {
 	*baseapp.BaseApp
 	keepers.AppKeepers
 
@@ -122,7 +107,7 @@ func init() {
 
 // New returns a reference to an initialized app.
 
-func NewOmniFlixApp(
+func NewPartyNiteApp(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
@@ -132,9 +117,8 @@ func NewOmniFlixApp(
 	invCheckPeriod uint,
 	encodingConfig appparams.EncodingConfig,
 	appOpts servertypes.AppOptions,
-	wasmOpts []wasmkeeper.Option,
 	baseAppOptions ...func(*baseapp.BaseApp),
-) *OmniFlixApp {
+) *PartyNiteApp {
 	appCodec := encodingConfig.Marshaler
 	cdc := encodingConfig.Amino
 	interfaceRegistry := encodingConfig.InterfaceRegistry
@@ -145,7 +129,7 @@ func NewOmniFlixApp(
 	bApp.SetVersion(version.Version)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
-	app := &OmniFlixApp{
+	app := &PartyNiteApp{
 		AppKeepers:        keepers.AppKeepers{},
 		BaseApp:           bApp,
 		cdc:               cdc,
@@ -169,7 +153,6 @@ func NewOmniFlixApp(
 		invCheckPeriod,
 		logger,
 		appOpts,
-		wasmOpts,
 	)
 
 	/****  Module Options ****/
@@ -234,11 +217,6 @@ func NewOmniFlixApp(
 	}
 	reflectionv1.RegisterReflectionServiceServer(app.GRPCQueryRouter(), reflectionSvc)
 
-	wasmConfig, err := wasm.ReadWasmConfig(appOpts)
-	if err != nil {
-		panic("error while reading wasm config: " + err.Error())
-	}
-
 	// initialize stores
 	app.MountKVStores(app.GetKVStoreKey())
 	app.MountTransientStores(app.GetTransientStoreKey())
@@ -256,14 +234,11 @@ func NewOmniFlixApp(
 				SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 				SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 			},
-			GovKeeper:         app.GovKeeper,
-			IBCKeeper:         app.IBCKeeper,
-			Codec:             appCodec,
-			WasmConfig:        wasmConfig,
-			TxCounterStoreKey: app.AppKeepers.GetKey(wasmtypes.StoreKey),
+			GovKeeper: app.GovKeeper,
+			IBCKeeper: app.IBCKeeper,
+			Codec:     appCodec,
 
 			BypassMinFeeMsgTypes: GetDefaultBypassFeeMessages(),
-			GlobalFeeKeeper:      app.GlobalFeeKeeper,
 			StakingKeeper:        *app.StakingKeeper,
 			CircuitKeeper:        &app.CircuitKeeper,
 		},
@@ -287,16 +262,6 @@ func NewOmniFlixApp(
 	app.SetPrecommiter(app.PreCommitter)
 	app.SetPrepareCheckStater(app.PrepareCheckStater)
 
-	// Register snapshot extensions to enable state-sync for wasm.
-	if manager := app.SnapshotManager(); manager != nil {
-		err := manager.RegisterExtensions(
-			wasmkeeper.NewWasmSnapshotter(app.CommitMultiStore(), &app.WasmKeeper),
-		)
-		if err != nil {
-			panic(fmt.Errorf("failed to register snapshot extension: %s", err))
-		}
-	}
-
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(fmt.Sprintf("failed to load latest version: %s", err))
@@ -307,26 +272,26 @@ func NewOmniFlixApp(
 }
 
 // Name returns the name of the App
-func (app *OmniFlixApp) Name() string { return app.BaseApp.Name() }
+func (app *PartyNiteApp) Name() string { return app.BaseApp.Name() }
 
 // PreBlocker application updates before begin of the block
-func (app *OmniFlixApp) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
+func (app *PartyNiteApp) PreBlocker(ctx sdk.Context, _ *abci.RequestFinalizeBlock) (*sdk.ResponsePreBlock, error) {
 	return app.mm.PreBlock(ctx)
 }
 
 // BeginBlocker application updates every begin block
-func (app *OmniFlixApp) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
+func (app *PartyNiteApp) BeginBlocker(ctx sdk.Context) (sdk.BeginBlock, error) {
 	BeginBlockForks(ctx, app)
 	return app.mm.BeginBlock(ctx)
 }
 
 // EndBlocker application updates every end block
-func (app *OmniFlixApp) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
+func (app *PartyNiteApp) EndBlocker(ctx sdk.Context) (sdk.EndBlock, error) {
 	return app.mm.EndBlock(ctx)
 }
 
 // InitChainer application update at chain initialization
-func (app *OmniFlixApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
+func (app *PartyNiteApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain) (*abci.ResponseInitChain, error) {
 	var genesisState GenesisState
 	if err := tmjson.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
 		panic(err)
@@ -341,14 +306,14 @@ func (app *OmniFlixApp) InitChainer(ctx sdk.Context, req *abci.RequestInitChain)
 }
 
 // PreCommitter application updates before the commit of a block after all transactions have been delivered.
-func (app *OmniFlixApp) PreCommitter(ctx sdk.Context) {
+func (app *PartyNiteApp) PreCommitter(ctx sdk.Context) {
 	mm := app.ModuleManager()
 	if err := mm.Precommit(ctx); err != nil {
 		panic(err)
 	}
 }
 
-func (app *OmniFlixApp) PrepareCheckStater(ctx sdk.Context) {
+func (app *PartyNiteApp) PrepareCheckStater(ctx sdk.Context) {
 	mm := app.ModuleManager()
 	if err := mm.PrepareCheckState(ctx); err != nil {
 		panic(err)
@@ -356,12 +321,12 @@ func (app *OmniFlixApp) PrepareCheckStater(ctx sdk.Context) {
 }
 
 // LoadHeight loads a particular height
-func (app *OmniFlixApp) LoadHeight(height int64) error {
+func (app *PartyNiteApp) LoadHeight(height int64) error {
 	return app.LoadVersion(height)
 }
 
 // ModuleAccountAddrs returns all the app's module account addresses.
-func (app *OmniFlixApp) ModuleAccountAddrs() map[string]bool {
+func (app *PartyNiteApp) ModuleAccountAddrs() map[string]bool {
 	modAccAddrs := make(map[string]bool)
 	for acc := range maccPerms {
 		modAccAddrs[authtypes.NewModuleAddress(acc).String()] = true
@@ -371,7 +336,7 @@ func (app *OmniFlixApp) ModuleAccountAddrs() map[string]bool {
 }
 
 // BlockedAccountAddrs returns all the app's blocked account addresses.
-func (app *OmniFlixApp) BlockedAccountAddrs() map[string]bool {
+func (app *PartyNiteApp) BlockedAccountAddrs() map[string]bool {
 	return app.ModuleAccountAddrs()
 }
 
@@ -379,7 +344,7 @@ func (app *OmniFlixApp) BlockedAccountAddrs() map[string]bool {
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *OmniFlixApp) LegacyAmino() *codec.LegacyAmino {
+func (app *PartyNiteApp) LegacyAmino() *codec.LegacyAmino {
 	return app.cdc
 }
 
@@ -387,26 +352,26 @@ func (app *OmniFlixApp) LegacyAmino() *codec.LegacyAmino {
 //
 // NOTE: This is solely to be used for testing purposes as it may be desirable
 // for modules to register their own custom testing types.
-func (app *OmniFlixApp) AppCodec() codec.Codec {
+func (app *PartyNiteApp) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
 // InterfaceRegistry returns omniflixhub's InterfaceRegistry
-func (app *OmniFlixApp) InterfaceRegistry() types.InterfaceRegistry {
+func (app *PartyNiteApp) InterfaceRegistry() types.InterfaceRegistry {
 	return app.interfaceRegistry
 }
 
 // GetSubspace returns a param subspace for a given module name.
 //
 // NOTE: This is solely to be used for testing purposes.
-func (app *OmniFlixApp) GetSubspace(moduleName string) paramstypes.Subspace {
+func (app *PartyNiteApp) GetSubspace(moduleName string) paramstypes.Subspace {
 	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
 	return subspace
 }
 
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
-func (app *OmniFlixApp) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig) {
+func (app *PartyNiteApp) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig) {
 	clientCtx := apiSvr.ClientCtx
 
 	// Register new tx routes from grpc-gateway.
@@ -426,20 +391,20 @@ func (app *OmniFlixApp) RegisterAPIRoutes(apiSvr *api.Server, _ config.APIConfig
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
-func (app *OmniFlixApp) RegisterTxService(clientCtx client.Context) {
+func (app *PartyNiteApp) RegisterTxService(clientCtx client.Context) {
 	authtx.RegisterTxService(app.BaseApp.GRPCQueryRouter(), clientCtx, app.BaseApp.Simulate, app.interfaceRegistry)
 }
 
-func (app *OmniFlixApp) ModuleManager() module.Manager {
+func (app *PartyNiteApp) ModuleManager() module.Manager {
 	return *app.mm
 }
 
-func (app *OmniFlixApp) SimulationManager() *module.SimulationManager {
+func (app *PartyNiteApp) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
 // RegisterTendermintService implements the Application.RegisterTendermintService method.
-func (app *OmniFlixApp) RegisterTendermintService(clientCtx client.Context) {
+func (app *PartyNiteApp) RegisterTendermintService(clientCtx client.Context) {
 	cmtservice.RegisterTendermintService(
 		clientCtx,
 		app.BaseApp.GRPCQueryRouter(),
@@ -448,11 +413,11 @@ func (app *OmniFlixApp) RegisterTendermintService(clientCtx client.Context) {
 	)
 }
 
-func (app *OmniFlixApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
+func (app *PartyNiteApp) RegisterNodeService(clientCtx client.Context, cfg config.Config) {
 	nodeservice.RegisterNodeService(clientCtx, app.GRPCQueryRouter(), cfg)
 }
 
-func (app *OmniFlixApp) setupUpgradeHandlers() {
+func (app *PartyNiteApp) setupUpgradeHandlers() {
 	for _, upgrade := range Upgrades {
 		app.UpgradeKeeper.SetUpgradeHandler(
 			upgrade.UpgradeName,
@@ -467,7 +432,7 @@ func (app *OmniFlixApp) setupUpgradeHandlers() {
 }
 
 // configure store loader that checks if version == upgradeHeight and applies store upgrades
-func (app *OmniFlixApp) setupUpgradeStoreLoaders() {
+func (app *PartyNiteApp) setupUpgradeStoreLoaders() {
 	upgradeInfo, err := app.UpgradeKeeper.ReadUpgradeInfoFromDisk()
 	if err != nil {
 		panic(fmt.Sprintf("failed to read upgrade info from disk %s", err))
@@ -508,6 +473,6 @@ func GetDefaultBypassFeeMessages() []string {
 	}
 }
 
-func (app *OmniFlixApp) GetChainBondDenom() string {
+func (app *PartyNiteApp) GetChainBondDenom() string {
 	return "uflix"
 }
